@@ -1,17 +1,17 @@
+import abc
 import pygame
 import math
 import random
 import time
 
-class HangmanGame:
+class HangmanGame(abc.ABC):
     def __init__(self, width, height):
-        #inkapsuliavimas
         self.width = width
         self.height = height
         self.win = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("Hangman Game!")
         
-        # mygtuku duomenys
+        # Mygtukai duomenys
         self.RADIUS = 20
         self.GAP = 15
         self.letters = []
@@ -23,31 +23,39 @@ class HangmanGame:
             y = self.starty + ((i // 13) * (self.GAP + self.RADIUS * 2))
             self.letters.append([x, y, chr(self.A + i), True])
 
-        # Sriftai
+        # Šriftai
         self.LETTER_FONT = pygame.font.SysFont('timesnewroman', 40)
         self.WORD_FONT = pygame.font.SysFont('timesnewroman', 60)
         self.TITLE_FONT = pygame.font.SysFont('timesnewroman', 70)
 
-        # Kraunamos nuotraukos
+        # Kraunami nuotraukos
         self.images = []
-        for i in range(7):
-            image = pygame.image.load("basic" + str(i) + ".png")
-            self.images.append(image)
+        self.load_images()  # Abstrakti metodas, įkeliantis nuotraukas
 
-        # game variables
+        # Žaidimo kintamieji
         self.hangman_status = 0
-        self.words = self.load_words_from_file("words.txt")  # Krauname zodzius is failo
-        self.word = random.choice(self.words)  # Renkamas atsitiktinis zodis
+        self.words = self.load_words()  # Abstrakti metodas žodžiams įkelti
+        self.word = random.choice(self.words)  # Atsitiktinis žodis
         self.guessed = []
 
         # Spalvos
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
 
-        self.start_time = time.time()  # Leidzia pradeti skaiciuoti likusi laika kai zaidimas yra paleidziamas
-    # IMAME ZODZIUS IS TXT FAILO
+        self.start_time = time.time()  # Leidžia pradėti skaičiuoti likusį laiką
+
+    @abc.abstractmethod
+    def load_words(self):
+        """Abstraktus metodas žodžiams įkelti, priklauso nuo žaidimo tipo"""
+        pass
+
+    @abc.abstractmethod
+    def load_images(self):
+        """Abstraktus metodas nuotraukoms įkelti, priklauso nuo žaidimo tipo"""
+        pass
+
     def load_words_from_file(self, file_name):
-        
+        """Žodžių įkėlimas iš failo"""
         try:
             with open(file_name, 'r') as file:
                 words = [line.strip() for line in file.readlines()]
@@ -57,13 +65,12 @@ class HangmanGame:
             return []
 
     def draw(self):
-        # zaidimo piesimas yra abraktuotas nuo vartotojo
         self.win.fill(self.WHITE)
-        # Piesiame/spausdiname pavadinima
+        # Piešiame pavadinimą
         text = self.TITLE_FONT.render("HANGMAN GAME", 1, self.BLACK)
         self.win.blit(text, (self.width / 2 - text.get_width() / 2, 20))
 
-        # Piesiame/spausdinam zodi
+        # Piešiame žodį
         display_word = ""
         for letter in self.word:
             if letter in self.guessed:
@@ -72,12 +79,12 @@ class HangmanGame:
                 display_word += "_ "
     
         word_width = self.WORD_FONT.size(display_word)[0]
-        word_x = (self.width - word_width) / 2  # Centruojame zodi viduryje
+        word_x = (self.width - word_width) / 2  # Centruojame žodį viduryje
 
         text = self.WORD_FONT.render(display_word, 1, self.BLACK)
         self.win.blit(text, (word_x, 200))
 
-        # Piesiame/spausdinam raidziu mygtukus
+        # Piešiame raidžių mygtukus
         for letter in self.letters:
             x, y, ltr, visible = letter
             if visible:
@@ -107,20 +114,18 @@ class HangmanGame:
 
     def display_timer(self):
         elapsed_time = time.time() - self.start_time
-        remaining_time = max(0, 60 - int(elapsed_time))  # 60 sekundziu laikmatis kuris uztikrina kad tai nenueitu i minusa
+        remaining_time = max(0, 60 - int(elapsed_time))  # 60 sekundžių laikmatis
         
-        pygame.draw.circle(self.win, self.BLACK, (self.width - 80, self.height - 50), 40, 3)  # nupiesiame apskritima laikmaciui ir nustatome kad jis butu apacioje desinej
+        pygame.draw.circle(self.win, self.BLACK, (self.width - 80, self.height - 50), 40, 3)
     
-        # Piesiame likusi laika kaip teksta
+        # Piešiame likusį laiką kaip tekstą
         timer_text = self.LETTER_FONT.render(f"{remaining_time}s", 1, self.BLACK)
     
-        # Centruojame teksta viduryje apskritimo
-        text_x = self.width - timer_text.get_width() - 52  # horizontaliai
-        text_y = self.height - 50 - timer_text.get_height() / 2  # vertikaliai
+        # Centruojame tekstą apskritime
+        text_x = self.width - timer_text.get_width() - 52  # Horizontaliai
+        text_y = self.height - 50 - timer_text.get_height() / 2  # Vertikaliai
     
-        self.win.blit(timer_text, (text_x, text_y))  # statome teksta viduryje apskritimo
-
-
+        self.win.blit(timer_text, (text_x, text_y))
 
     def main(self):
         FPS = 60
@@ -161,22 +166,33 @@ class HangmanGame:
                 self.display_message("You LOST!")
                 break
 
-            # Jei laikas baigiasi, zaidimas pralaimimas
+            # Jei laikas baigiasi, žaidimas pralaimimas
             elapsed_time = time.time() - start_time
             if elapsed_time > 60:
                 self.display_message("Time's up! You LOST!")
                 break
 
 
+class BasicHangman(HangmanGame):
+    def load_words(self):
+        """Loads words for the basic game mode"""
+        return self.load_words_from_file("words.txt")
+
+    def load_images(self):
+        """Loads images for the basic game mode"""
+        self.images = [pygame.image.load(f"basic{i}.png") for i in range(7)]
+
+
 class AdvancedHangman(HangmanGame):
-    def __init__(self, width, height):    
-    #Raktinis žodis super() AdvancedHangman klasėje rodo polimorfizmą:
-        super().__init__(width, height) #paveldejimas is hangmangame klases
-        self.words = self.load_words_from_file("advancedwords.txt")
-        self.word = random.choice(self.words)
-        self.load_advanced_images()
-    def load_advanced_images(self):
-        self.images = [pygame.image.load(f"hangman{i}.png") for i in range(7)] # nuotraukos ikelimas yra abstraktuotas
+    def load_words(self):
+        """Loads words for the advanced game mode"""
+        return self.load_words_from_file("advancedwords.txt")
+
+    def load_images(self):
+        """Loads images for the advanced game mode"""
+        self.images = [pygame.image.load(f"hangman{i}.png") for i in range(7)]
+
+
 def show_mode_selection():
     pygame.init()
     screen = pygame.display.set_mode((1000, 600))
@@ -187,20 +203,16 @@ def show_mode_selection():
 
     basic_btn = pygame.Rect(75, 250, 400, 100)
     adv_btn = pygame.Rect(500, 250, 400, 100)
-    mode_btn= pygame.Rect(240, 50, 265, 100)
-    mode1_btn= pygame.Rect(500, 50, 265, 100)
 
     while True:
         screen.fill(white)
         pygame.draw.ellipse(screen, (0, 100, 255), basic_btn)
         pygame.draw.ellipse(screen, (255, 0, 0), adv_btn)
-        pygame.draw.rect(screen,(0,100,255), mode_btn)
-        pygame.draw.rect(screen,(255,0,0), mode1_btn)
 
         header_font = pygame.font.SysFont('timesnewroman', 50)
         header_text = header_font.render("CHOOSE GAME MODE", True, black)
         screen.blit(header_text, (screen.get_width() / 2 - header_text.get_width() / 2, 75))   
-    
+
         basic_text = font.render("BASIC", True, white)
         adv_text = font.render("ADVANCED", True, white)
         screen.blit(basic_text, (basic_btn.x + 110, basic_btn.y + 15))
@@ -215,11 +227,11 @@ def show_mode_selection():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 m_x, m_y = pygame.mouse.get_pos()
                 if basic_btn.collidepoint(m_x, m_y):
-                    game = HangmanGame(1000, 600)
+                    game = BasicHangman(1000, 600)
                     game.main()
                     return
                 elif adv_btn.collidepoint(m_x, m_y):
-                    game = AdvancedHangman(1000, 600)  # For now same as basic
+                    game = AdvancedHangman(1000, 600)
                     game.main()
                     return
 
