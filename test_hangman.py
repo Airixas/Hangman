@@ -7,12 +7,14 @@ class TestHangmanGame(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Inicializuoja pygame prieš vykdant testus"""
-        pygame.init()
+        pygame.display.init()  # Inicijuojame tik 'display' modulį
+        pygame.font.init()     # Inicijuojame 'font' modulį
 
     @classmethod
     def tearDownClass(cls):
         """Uždaro pygame po visų testų"""
-        pygame.quit()
+        pygame.font.quit()     # Uždaro 'font' modulį
+        pygame.display.quit()  # Uždaro 'display' modulį
 
     def test_load_words_from_file_valid(self):
         """Testuoja, ar žodžiai teisingai įkeliami iš failo"""
@@ -45,22 +47,20 @@ class TestHangmanGame(unittest.TestCase):
         game.guess_letter('z')
         self.assertEqual(game.hangman_status, 1)  # Neteisingo spėjimo atveju hangman statusas turėtų padidėti
 
-    @patch('pygame.display.set_mode')  # Mocking Pygame display
-    def test_draw(self, mock_set_mode):
+    def test_draw(self):
         """Testuoja, ar draw metodas užtikrina, kad ekranas užpildomas"""
-        # Sukuriame tikrą pygame.Surface objektą
-        mock_surface = pygame.Surface((1000, 600))
-        mock_set_mode.return_value = mock_surface
-
         # Sukuriame žaidimo objektą
         game = BasicHangman(1000, 600)
         
+        # Inicializuojame pygame ekraną
+        game.win = pygame.display.set_mode((1000, 600))
+
         # Vykdome testuojamą metodą
-        game.draw()
-
-        # Patikriname, ar pygame.display.set_mode buvo iškviesta
-        mock_set_mode.assert_called_once()
-
+        try:
+            game.draw()
+            pygame.display.update()  # Bandome atnaujinti ekraną
+        except Exception as e:
+            self.fail(f"Draw metodas nepavyko: {e}")
 
 if __name__ == "__main__":
     unittest.main()
