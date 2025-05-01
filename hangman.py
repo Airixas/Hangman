@@ -64,6 +64,13 @@ class HangmanGame(abc.ABC):
             print(f"Error: {file_name} not found!")
             return []
 
+    def guess_letter(self, letter):
+        """Apdoroja raidės spėjimą"""
+        if letter in self.word and letter not in self.guessed:
+            self.guessed.append(letter)
+        elif letter not in self.word:
+            self.hangman_status += 1
+
     def draw(self):
         self.win.fill(self.WHITE)
         # Piešiame pavadinimą
