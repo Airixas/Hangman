@@ -48,9 +48,18 @@ class TestHangmanGame(unittest.TestCase):
     @patch('pygame.display.set_mode')  # Mocking Pygame display
     def test_draw(self, mock_set_mode):
         """Testuoja, ar draw metodas užtikrina, kad ekranas užpildomas"""
+        # Sukuriame tikrą pygame.Surface objektą
+        mock_surface = pygame.Surface((1000, 600))
+        mock_set_mode.return_value = mock_surface
+
+        # Sukuriame žaidimo objektą
         game = BasicHangman(1000, 600)
+        
+        # Vykdome testuojamą metodą
         game.draw()
-        mock_set_mode.assert_called_once()  # Patikriname, ar buvo iškviesta pygame.display.set_mode
+
+        # Patikriname, ar pygame.display.set_mode buvo iškviesta
+        mock_set_mode.assert_called_once()
 
 
 if __name__ == "__main__":
