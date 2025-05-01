@@ -205,6 +205,8 @@ def show_mode_selection():
     screen = pygame.display.set_mode((1000, 600))
     pygame.display.set_caption("Select Game Mode")
     font = pygame.font.SysFont('timesnewroman', 60)
+    header_font = pygame.font.SysFont('timesnewroman', 50)
+
     white = (255, 255, 255)
     black = (0, 0, 0)
 
@@ -216,7 +218,6 @@ def show_mode_selection():
         pygame.draw.ellipse(screen, (0, 100, 255), basic_btn)
         pygame.draw.ellipse(screen, (255, 0, 0), adv_btn)
 
-        header_font = pygame.font.SysFont('timesnewroman', 50)
         header_text = header_font.render("CHOOSE GAME MODE", True, black)
         screen.blit(header_text, (screen.get_width() / 2 - header_text.get_width() / 2, 75))   
 
