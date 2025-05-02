@@ -182,21 +182,17 @@ class HangmanGame(abc.ABC):
 
 class BasicHangman(HangmanGame):
     def load_words(self):
-        """Loads words for the basic game mode"""
         return self.load_words_from_file("words.txt")
 
     def load_images(self):
-        """Loads images for the basic game mode"""
         self.images = [pygame.image.load(f"basic{i}.png") for i in range(7)]
 
 
 class AdvancedHangman(HangmanGame):
     def load_words(self):
-        """Loads words for the advanced game mode"""
         return self.load_words_from_file("advancedwords.txt")
 
     def load_images(self):
-        """Loads images for the advanced game mode"""
         self.images = [pygame.image.load(f"hangman{i}.png") for i in range(7)]
 
 
